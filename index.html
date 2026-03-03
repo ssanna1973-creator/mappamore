@@ -4,9 +4,284 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Nostra Mappa d'Amore 2022-2026</title>
-    <!-- Qui dentro va tutto il codice che ti ho dato prima -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-x: hidden;
+        }
+        
+        #map {
+            height: 100vh;
+            width: 100%;
+            z-index: 1;
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 40px;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.5);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            color: #e74c3c;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            color: #555;
+            font-style: italic;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-width: 250px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .legend h3 {
+            margin: 0 0 15px 0;
+            font-family: 'Playfair Display', serif;
+            color: #333;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 5px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .custom-popup {
+            font-family: 'Lato', sans-serif;
+        }
+        
+        .custom-popup h3 {
+            font-family: 'Playfair Display', serif;
+            color: #e74c3c;
+            margin: 0 0 5px 0;
+            font-size: 1.3em;
+        }
+        
+        .custom-popup p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 25px;
+                width: 90%;
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+            .legend {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- ... -->
+    <div class="header">
+        <h1>💖 La Nostra Mappa d'Amore 💖</h1>
+        <p>2022 - 2026: Un viaggio indimenticabile insieme</p>
+    </div>
+    
+    <div id="map"></div>
+    
+    <div class="legend">
+        <h3>🗺️ Legenda</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e74c3c;"></div>
+            <span>Roma & Lazio</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #3498db;"></div>
+            <span>Campania & Costiera</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #27ae60;"></div>
+            <span>Puglia & Salento</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #f39c12;"></div>
+            <span>Toscana, Sardegna & Nord</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #9b59b6;"></div>
+            <span>Estero (Lisbona, Cracovia, Marrakech)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e91e63;"></div>
+            <span>Sicilia</span>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([42.5, 12.5], 6);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        var colors = {
+            roma: '#e74c3c',
+            campania: '#3498db',
+            puglia: '#27ae60',
+            toscana: '#f39c12',
+            estero: '#9b59b6',
+            sicilia: '#e91e63',
+            lombardia: '#00bcd4'
+        };
+
+        function createCustomIcon(color) {
+            return L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: ${color}; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">❤</div>`,
+                iconSize: [25, 25],
+                iconAnchor: [12, 12],
+                popupAnchor: [0, -12]
+            });
+        }
+
+        var locations = [
+            {name: "Color Party a Ostia", coords: [41.7311, 12.2792], color: colors.roma, desc: "Party in spiaggia"},
+            {name: "Profumo Spazio Sensoriale Parioli", coords: [41.9186, 12.4886], color: colors.roma, desc: "Roma - Parioli"},
+            {name: "Aperitivo De la Ville Piazza di Spagna", coords: [41.9058, 12.4823], color: colors.roma, desc: "Roma - Piazza di Spagna"},
+            {name: "Marina di San Nicola", coords: [41.9875, 12.0917], color: colors.roma, desc: "Party in piscina & Villa Sandrino"},
+            {name: "Borgarello", coords: [45.2167, 9.1333], color: colors.lombardia, desc: "Fasi della vita insieme"},
+            {name: "Labaro", coords: [42.0167, 12.5167], color: colors.roma, desc: "Roma - Zona nord"},
+            {name: "Lago di Bracciano", coords: [42.1167, 12.2333], color: colors.roma, desc: "Weekend romantico"},
+            {name: "Villa Tiberia", coords: [41.8333, 12.4667], color: colors.roma, desc: "Location importante"},
+            {name: "Riano", coords: [42.0833, 12.5167], color: colors.roma, desc: "Momenti speciali"},
+            {name: "Soriano nel Cimino", coords: [42.4167, 12.2333], color: colors.roma, desc: "Palazzo Catalani & relax"},
+            {name: "Vasanello - Pecora Ladra", coords: [42.4167, 12.3333], color: colors.roma, desc: "Cena spettacolare"},
+            {name: "Sermoneta", coords: [41.4333, 12.9833], color: colors.roma, desc: "Paese medievale"},
+            {name: "Lago del Turano", coords: [42.2167, 13.0167], color: colors.roma, desc: "Tartufo e baci"},
+            {name: "Roccaraso", coords: [41.8500, 14.0833], color: colors.roma, desc: "Neve candida con i figli"},
+            {name: "Fiuggi", coords: [41.8000, 13.2333], color: colors.roma, desc: "Weekend relax"},
+            {name: "Karma Beach Focene", coords: [41.8000, 12.2167], color: colors.roma, desc: "Party del Quasi Pressapochismo"},
+            {name: "Montagna Spaccata", coords: [41.2167, 13.5667], color: colors.roma, desc: "Gaeta - Meraviglia naturale"},
+            {name: "Sperlonga", coords: [41.2667, 13.4333], color: colors.roma, desc: "Borghi marinari"},
+            {name: "Gaeta", coords: [41.2167, 13.5667], color: colors.roma, desc: "Costa del Lazio"},
+            {name: "Fregene", coords: [41.8500, 12.2000], color: colors.roma, desc: "Spiaggia romana"},
+            {name: "Castel Gandolfo", coords: [41.7500, 12.6500], color: colors.roma, desc: "Tramonti mozzafiato"},
+            {name: "Gianicolo", coords: [41.8917, 12.4614], color: colors.roma, desc: "Superlune romantiche"},
+            {name: "Tevere", coords: [41.9000, 12.4667], color: colors.roma, desc: "Prima volta sul biondo Tevere"},
+            {name: "Talamone", coords: [42.5500, 11.1333], color: colors.toscana, desc: "Barca a vela e relax"},
+            {name: "Piombino", coords: [42.9333, 10.5333], color: colors.toscana, desc: "Pranzo nel borgo storico"},
+            {name: "Porto Santo Stefano", coords: [42.4333, 11.1167], color: colors.toscana, desc: "Argentario"},
+            {name: "Isola del Giglio", coords: [42.3500, 10.9000], color: colors.toscana, desc: "Toscana - Arcipelago"},
+            {name: "Sabaudia", coords: [41.3000, 13.0167], color: colors.roma, desc: "Litorale pontino"},
+            {name: "Milano", coords: [45.4642, 9.1900], color: colors.lombardia, desc: "Capitale della moda"},
+            {name: "Tramonti", coords: [40.6167, 14.6333], color: colors.campania, desc: "Costiera Amalfitana"},
+            {name: "Capri", coords: [40.5500, 14.2333], color: colors.campania, desc: "Isola azzurra"},
+            {name: "Praiano", coords: [40.6167, 14.5333], color: colors.campania, desc: "Il Pirata - Cena romantica"},
+            {name: "Maiori", coords: [40.6500, 14.6333], color: colors.campania, desc: "Costiera Amalfitana"},
+            {name: "Minori", coords: [40.6500, 14.6167], color: colors.campania, desc: "Costiera Amalfitana"},
+            {name: "Amalfi", coords: [40.6333, 14.6000], color: colors.campania, desc: "Cuore della Costiera"},
+            {name: "Positano", coords: [40.6333, 14.4833], color: colors.campania, desc: "Perla della Costiera"},
+            {name: "Agerola", coords: [40.6333, 14.5333], color: colors.campania, desc: "Da Brunori Sas"},
+            {name: "Napoli", coords: [40.8518, 14.2681], color: colors.campania, desc: "Spaccanapoli & San Gregorio Armeno"},
+            {name: "Salerno", coords: [40.6824, 14.7681], color: colors.campania, desc: "Luminarie & Gynitaly"},
+            {name: "Sorrento", coords: [40.6263, 14.3758], color: colors.campania, desc: "Penisola sorrentina"},
+            {name: "Ischia", coords: [40.7333, 13.9000], color: colors.campania, desc: "4 Giorni in scooter"},
+            {name: "Lecce", coords: [40.3515, 18.1750], color: colors.puglia, desc: "Firenze del Sud"},
+            {name: "Porto Cesareo", coords: [40.2667, 17.9000], color: colors.puglia, desc: "Il tuo Paradise!"},
+            {name: "Punta Prosciutto", coords: [40.3167, 17.9167], color: colors.puglia, desc: "Spiaggia paradisiaca"},
+            {name: "Scala di Furno", coords: [40.2500, 17.9167], color: colors.puglia, desc: "Salento"},
+            {name: "Leverano", coords: [40.3000, 18.0833], color: colors.puglia, desc: "Torre di Federico II"},
+            {name: "San Vito Lo Capo", coords: [38.1667, 12.7333], color: colors.sicilia, desc: "Sicilia - Con Giusina e le Bimbe"},
+            {name: "Costa Smeralda", coords: [41.0333, 9.5500], color: colors.toscana, desc: "Sardegna - Arcipelago Maddalena"},
+            {name: "La Maddalena", coords: [41.2167, 9.4000], color: colors.toscana, desc: "Arcipelago della Maddalena"},
+            {name: "Palermo", coords: [38.1157, 13.3615], color: colors.sicilia, desc: "La tua amata Palermo"},
+            {name: "Cefalù", coords: [38.0333, 14.0167], color: colors.sicilia, desc: "Sicilia settentrionale"},
+            {name: "Lisbona", coords: [38.7223, -9.1393], color: colors.estero, desc: "Portogallo - 3 giorni d'amore"},
+            {name: "Cracovia", coords: [50.0647, 19.9450], color: colors.estero, desc: "Polonia - Mercatini di Natale"},
+            {name: "Marrakech", coords: [31.6295, -7.9811], color: colors.estero, desc: "Marocco - Febbraio 2026"},
+            {name: "Ponza", coords: [40.9000, 12.9667], color: colors.roma, desc: "2° Anniversario d'amore"}
+        ];
+
+        locations.forEach(function(loc) {
+            var marker = L.marker(loc.coords, {
+                icon: createCustomIcon(loc.color)
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <div class="custom-popup">
+                    <h3>${loc.name}</h3>
+                    <p>${loc.desc}</p>
+                </div>
+            `);
+        });
+
+        var romanticPaths = [
+            [[40.8518, 14.2681], [40.6333, 14.6000], [40.6167, 14.5333], [40.6333, 14.4833]],
+            [[40.3515, 18.1750], [40.2667, 17.9000], [40.3167, 17.9167]],
+            [[41.7311, 12.2792], [41.9875, 12.0917], [41.8000, 12.2167]],
+            [[42.4167, 12.2333], [42.4167, 12.3333]],
+            [[41.2667, 13.4333], [41.2167, 13.5667]]
+        ];
+
+        romanticPaths.forEach(function(path) {
+            L.polyline(path, {
+                color: '#e74c3c',
+                weight: 2,
+                opacity: 0.6,
+                dashArray: '5, 10',
+                smoothFactor: 1
+            }).addTo(map);
+        });
+    </script>
 </body>
 </html>
